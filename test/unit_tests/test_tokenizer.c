@@ -20,7 +20,7 @@ void test_tokenize(CuTest *tc) {
 	char *file3 = "print \"Hello World!\";\nfoo();\n";
 
 	char *file1_expected[7] = {"float", "bmi", "=", "weight", "/", "height", ";"};
-	char *file2_expected[5] = {"float", "pi", "=", "3.14.59265", ";"};
+	char *file2_expected[5] = {"float", "pi", "=", "3.14159265", ";"};
 	char *file3_expected[7] = {"print", "\"Hello World!\"", ";", "foo", "(", ")", ";"}; 
 
 	token_t *head = NULL;
@@ -56,6 +56,7 @@ void test_is_word(CuTest *tc) {
 	CuAssertTrue(tc, !is_word('\"'));
 	CuAssertTrue(tc, !is_word('\0'));
 	CuAssertTrue(tc, !is_word('#'));
+	CuAssertTrue(tc, !is_word(';'));
 }
 
 void test_is_whitespace(CuTest *tc) {

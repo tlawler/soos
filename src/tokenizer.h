@@ -8,6 +8,7 @@ int tokenize(char *file, int fsize, token_t **tokens);
 void tokenize_word(char **pos, char **token, int remaining_size);
 int is_whitespace(char c);
 int is_word(char c);
+int is_number(char c);
 void parse_symbol(char **pos, char **token);
 void free_tokens(token_t *token_head);
 

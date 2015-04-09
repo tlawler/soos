@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -31,6 +32,8 @@ int tokenize(char *file, int fsize, token_t **tokens)
 
 void tokenize_word(char **pos, char **token, int remaining_size)
 {
+	enum tokenize_state { NORMAL, QUOTES, QUOTES_BS, NUMBER, SYMBOL, DONE };
+
 	while (is_whitespace(**pos) && remaining_size > 0) {
 		(*pos)++;
 		remaining_size--;
@@ -38,19 +41,65 @@ void tokenize_word(char **pos, char **token, int remaining_size)
 	if (remaining_size <= 0) {
 		return;
 	}
-	if (is_word(**pos)) {
-		char *word_start = *pos;
-		while (is_word(**pos)) {
-			(*pos)++;
-		}
-		int token_len = (*pos) - word_start;
-		*token = malloc(token_len + 1);
-		memset(*token, 0, token_len + 1);
-		strncpy(*token, word_start, token_len);
-		
-	} else {
-		parse_symbol(pos, token);
+
+	enum tokenize_state ts = NORMAL;
+
+	char *start = *pos;
+	if (is_number(**pos)) {
+		ts = NUMBER;
+	} else if (((**pos) == '\"') || ((**pos) == '\'')) {
+		ts = QUOTES;
+	} else if (!is_word(**pos)) {
+		ts = SYMBOL;
 	}
+	int num_encountered_period = 0;
+	while (ts != DONE) {
+		(*pos)++;
+		switch (ts) {
+			case NORMAL:
+				if (!is_word(**pos)) {
+					ts = DONE;
+				}
+				break;
+			case QUOTES:
+				if ((**pos) == '\\') {
+					ts = QUOTES_BS;
+				} else if (((**pos) == '\"') || ((**pos) == '\'')) {
+					(*pos)++; //To include the final quote char
+					ts = DONE;
+				}
+				break;
+			case QUOTES_BS:
+				ts = QUOTES;
+				break;
+			case NUMBER:
+				if ((num_encountered_period == 0) && (**pos == '.')) {
+					num_encountered_period = 1;
+					break;
+				}
+				if (!is_number(**pos)) {
+					ts = DONE;
+				}
+				break;
+			case SYMBOL:
+				if ((is_whitespace(**pos) || is_word(**pos))) {
+					ts = DONE;
+				}
+				break;
+			case DONE:
+				break;
+			default:
+				printf("Something has gone horribly wrong in tokenize_word\n");
+				ts = DONE;
+				break;
+		}
+	}			
+
+	int token_len = (*pos) - start;
+	*token = malloc(token_len + 1);
+	memset(*token, 0, token_len + 1);
+	strncpy(*token, start, token_len);
+		
 }
 
 int is_whitespace(char c)
@@ -62,19 +111,15 @@ int is_whitespace(char c)
 
 int is_word(char c)
 {
-	return (( (int)c >= (int)'0') &&
-	        ( (int)c <= (int)'z'));
+	return (is_number(c) ||
+		(( (int)c >= (int)'A') &&
+	         ( (int)c <= (int)'z')));
 }
 
-void parse_symbol(char **pos, char **token)
+int is_number(char c)
 {
-	char *sym_start = *pos;
-	while (!is_whitespace(**pos) && !is_word(**pos)) {
-		(*pos)++;
-	}
-	size_t symbol_len = (*pos) - sym_start;
-	*token = malloc(symbol_len);
-	strncpy(*token, sym_start, symbol_len);
+	return (( (int)c >= (int)'0') &&
+		( (int)c <= (int)'9'));
 }
 
 void free_tokens(token_t *token_head) {
