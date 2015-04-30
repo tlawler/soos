@@ -71,40 +71,92 @@ void test_tokenize_word(CuTest *tc) {
 	char *string = "This is a sentence.\n";
 	char *token = NULL;
 
-	tokenize_word(&string, &token, 21);
+	symbol_node *head = load_symbol_tree();
+
+	tokenize_word(&string, &token, 21, head);
 	CuAssertStrEquals(tc, " is a sentence.\n", string);
 	CuAssertStrEquals(tc, "This", token);
 	free(token);
 	token = NULL;
 
-	tokenize_word(&string, &token, 16);
+	tokenize_word(&string, &token, 16, head);
 	CuAssertStrEquals(tc, " a sentence.\n", string);
 	CuAssertStrEquals(tc, "is", token);
 	free(token);
 	token = NULL;
 
-	tokenize_word(&string, &token, 13);
+	tokenize_word(&string, &token, 13, head);
 	CuAssertStrEquals(tc, " sentence.\n", string);
 	CuAssertStrEquals(tc, "a", token);
 	free(token);
 	token = NULL;
 
-	tokenize_word(&string, &token, 11);
+	tokenize_word(&string, &token, 11, head);
 	CuAssertStrEquals(tc, ".\n", string);
 	CuAssertStrEquals(tc, "sentence", token);
 	free(token);
 	token = NULL;
 
-	tokenize_word(&string, &token, 2);
+	tokenize_word(&string, &token, 2, head);
 	CuAssertStrEquals(tc, "\n", string);
 	CuAssertStrEquals(tc, ".", token);
 	free(token);
 	token = NULL;
 
-	tokenize_word(&string, &token, 1);
+	tokenize_word(&string, &token, 1, head);
 	CuAssertStrEquals(tc, "", string);
 	CuAssertPtrEquals(tc, NULL, token);
 
+	free_symbol_tree(head);
+
+}
+
+void test_load_symbol_tree(CuTest *tc) {
+
+	symbol_node *head = load_symbol_tree();
+	symbol_node *ptr = head;
+
+	CuAssertPtrNotNull(tc, ptr);
+
+	CuAssertTrue(tc, ('+' == ptr->sym));
+	CuAssertPtrNotNull(tc, ptr->child);
+
+	CuAssertPtrNotNull(tc, ptr->sib);
+	ptr = ptr->sib;
+
+	CuAssertTrue(tc, ('-' == ptr->sym));
+	CuAssertPtrNotNull(tc, ptr->sib);
+
+	CuAssertPtrNotNull(tc, ptr->child);
+	ptr = ptr->child;
+
+	CuAssertTrue(tc, ('\0' == ptr->sym));
+	CuAssertPtrEquals(tc, NULL, ptr->child);
+
+	CuAssertPtrNotNull(tc, ptr->sib);
+	ptr = ptr->sib;
+
+	CuAssertTrue(tc, ('=' == ptr->sym));
+
+	free_symbol_tree(head);
+	
+}
+
+void test_is_valid_symbol_char(CuTest *tc) {
+
+	symbol_node *head = load_symbol_tree();
+	symbol_node *pos = head;
+
+	CuAssertTrue(tc, is_valid_symbol_char('+',&pos));
+	CuAssertTrue(tc, is_valid_symbol_char('=',&pos));
+	CuAssertTrue(tc, !is_valid_symbol_char('=',&pos));
+
+	pos = head;	
+
+	CuAssertTrue(tc, is_valid_symbol_char('/',&pos));
+	CuAssertTrue(tc, !is_valid_symbol_char('+',&pos));
+
+	free_symbol_tree(head);
 }
 
 CuSuite *TokenizerGetSuite() {
@@ -113,5 +165,7 @@ CuSuite *TokenizerGetSuite() {
 	SUITE_ADD_TEST(suite, test_is_whitespace);
 	SUITE_ADD_TEST(suite, test_tokenize_word);
 	SUITE_ADD_TEST(suite, test_tokenize);
+	SUITE_ADD_TEST(suite, test_load_symbol_tree);
+	SUITE_ADD_TEST(suite, test_is_valid_symbol_char);
 	return suite;
 }
