@@ -6,7 +6,7 @@ TEST_OBJS = ${NON_MAIN_OBJS} ${UNIT_TESTS_PATH}/test_tokenizer.o
 
 DEBUG?=1
 
-CFLAGS=--std=c99 -Wall -fstack-protector-strong
+CFLAGS=--std=c99 -Wall -Werror -fstack-protector-strong
 
 ifeq (${DEBUG}, 1)
 	CFLAGS+=-g
