@@ -18,10 +18,13 @@ void test_tokenize(CuTest *tc) {
 	char *file1 = "float bmi = weight/height;";
 	char *file2 = "float pi = 3.14159265;";
 	char *file3 = "print \"Hello World!\";\nfoo();\n";
+	char *file4 = "print \"\\\"Hello World!\\\"\";\nint i = 0;\n\nbar(i++);\\";
 
 	char *file1_expected[7] = {"float", "bmi", "=", "weight", "/", "height", ";"};
 	char *file2_expected[5] = {"float", "pi", "=", "3.14159265", ";"};
-	char *file3_expected[7] = {"print", "\"Hello World!\"", ";", "foo", "(", ")", ";"}; 
+	char *file3_expected[7] = {"print", "\"Hello World!\"", ";", "foo", "(", ")", ";"};
+	char *file4_expected[15] = {"print", "\"\\\"Hello World!\\\"\"", ";", "int", "i", "=",\
+					 "0", ";", "bar", "(", "i", "++", ")", ";", "\\" };
 
 	token_t *head = NULL;
 
@@ -40,6 +43,12 @@ void test_tokenize(CuTest *tc) {
 	CuAssertIntEquals(tc, 0, tokenize(file3, strlen(file3), &head));
 
 	check_tokens(tc, head, file3_expected, 7);
+	free_tokens(head);
+	head = NULL;
+
+	CuAssertIntEquals(tc, 0, tokenize(file4, strlen(file4), &head));
+
+	check_tokens(tc, head, file4_expected, 15);
 	free_tokens(head);
 	head = NULL;
 }
