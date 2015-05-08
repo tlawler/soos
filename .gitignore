@@ -1,0 +1,3 @@
+*.o
+soos
+test/unit_tests/AllTests
